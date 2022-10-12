@@ -25,12 +25,12 @@ class DetaillInformationViewController: UIViewController {
     @IBOutlet weak var detailscrollView: UIScrollView!
     var viewModel = DirectoryViewModel(serviceManager: ListWebServiceManager())
     var employeeDetails:Employee?
-    var meetingRoomDeatils : MeettingRooms?
-     var listOfMeetingRooms = [MeettingRooms]() //this parameter will have fetched list of meeting rooms from api
+    var meetingRoomDeatils : MeetingRoom?
+     var listOfMeetingRooms = MeetingRooms() //this parameter will have fetched list of meeting rooms from api
 
     var categorySelected : String = ""
-    var bookedRoomsArray = [MeettingRooms]()
-    var availableRoomArray = [MeettingRooms]()
+    var bookedRoomsArray = MeetingRooms()
+    var availableRoomArray = MeetingRooms()
     var trackDetailedImage = UIImage()
 
     //costants
@@ -60,7 +60,7 @@ class DetaillInformationViewController: UIViewController {
         if let data = UserDefaults.standard.data(forKey: "LocallySavedBookedRooms") {
             do {
         let decoder = JSONDecoder()
-                bookedRoomsArray = try decoder.decode([MeettingRooms].self, from: data)
+                bookedRoomsArray = try decoder.decode(MeetingRooms.self, from: data)
             } catch {
                 print("Unable to Decode Notes (\(error))")
             }
@@ -69,7 +69,7 @@ class DetaillInformationViewController: UIViewController {
         if let data = UserDefaults.standard.data(forKey: "LocallySavedAvailableRooms") {
             do {
         let decoder = JSONDecoder()
-                availableRoomArray = try decoder.decode([MeettingRooms].self, from: data)
+                availableRoomArray = try decoder.decode(MeetingRooms.self, from: data)
             } catch {
                 print("Unable to Decode Notes (\(error))")
             }
@@ -213,7 +213,7 @@ class DetaillInformationViewController: UIViewController {
             if let data = UserDefaults.standard.data(forKey: "LocallySavedAvailableRooms") {
                 do {
                     // Create JSON Decoder
-                    let locallySavedAvailbleRooms = try decoder.decode([MeettingRooms].self, from: data)
+                    let locallySavedAvailbleRooms = try decoder.decode(MeetingRooms.self, from: data)
                         
                         let searchedID = meetingRoomDeatils?.id
                         for i  in  0..<locallySavedAvailbleRooms.count
@@ -252,7 +252,7 @@ class DetaillInformationViewController: UIViewController {
                     let decoder = JSONDecoder()
 
                     // Decode Note
-                    let locallySavedBookedRooms = try decoder.decode([MeettingRooms].self, from: data)
+                    let locallySavedBookedRooms = try decoder.decode(MeetingRooms.self, from: data)
                         
                         let searchedID = meetingRoomDeatils?.id
                         for i  in  0..<locallySavedBookedRooms.count

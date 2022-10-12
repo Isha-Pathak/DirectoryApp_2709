@@ -14,28 +14,29 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        meetingButton.layer.cornerRadius = 10.0
+        firmDirectoryButton.layer.cornerRadius = 10.0
     }
+    
     override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
         UserDefaults.standard.set(nil, forKey: "LocallySavedBookedRooms")
         UserDefaults.standard.set(nil, forKey: "LocallySavedAvailableRooms")
- 
-
-    meetingButton.layer.cornerRadius = 10.0
-        firmDirectoryButton.layer.cornerRadius = 10.0
-
     }
 
     @IBAction func meetingRoomsDetails(_ sender: Any) {
-        let listView = self.storyboard?.instantiateViewController(withIdentifier: "ListViewController") as! ListViewController
-        listView.categorySelected = "meetingRooms"
-         self.navigationController?.pushViewController(listView, animated: true)
-      
+        
+        let meetingRoomViewModel = MeetingRoomViewModel(serviceManager: ListWebServiceManager())
+        let listView = ListViewController.create(meetingRoomViewModel)
+        self.navigationController?.pushViewController(listView, animated: true)
+        
     }
     
     @IBAction func displayEmployeeDetails(_ sender: Any) {
-        let listView = self.storyboard?.instantiateViewController(withIdentifier: "ListViewController") as! ListViewController
-        listView.categorySelected = "people"
-         self.navigationController?.pushViewController(listView, animated: true)
+        let employeeViewModel = EmployeeListViewModel(serviceManager: ListWebServiceManager())
+        let listView = ListViewController.create(employeeViewModel)
+        self.navigationController?.pushViewController(listView, animated: true)
     }
 }
 

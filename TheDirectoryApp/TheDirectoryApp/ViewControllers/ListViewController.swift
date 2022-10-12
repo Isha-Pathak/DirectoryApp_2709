@@ -13,17 +13,28 @@ class ListViewController: UIViewController {
     @IBOutlet weak var bookedRoomsButton: UIButton!
     @IBOutlet weak var availableRoomsButton: UIButton!
     private var listOfEmployee = [Employee]() //this parameter will have fetched list of employees from api
-    private var listOfMeetingRooms = [MeettingRooms]() //this parameter will have fetched list of meeting rooms from api
-    var avaiableRoomList = [MeettingRooms]() //filtered list of available meeting rooms from "listOfMeetingRooms"
-    var bookedRoomList = [MeettingRooms]() // filtered list of booked meeting rooms from "listOfMeetingRooms"
-    var viewModel = DirectoryViewModel(serviceManager: ListWebServiceManager()) //view model object
+    private var listOfMeetingRooms = MeetingRooms() //this parameter will have fetched list of meeting rooms from api
+    var avaiableRoomList = MeetingRooms() //filtered list of available meeting rooms from "listOfMeetingRooms"
+    var bookedRoomList = MeetingRooms() // filtered list of booked meeting rooms from "listOfMeetingRooms"
+    var viewModel: ListViewModel? //view model object
     var categorySelected : String = "" // flag after slecting employee or meting room
     var activityIndicator : UIActivityIndicatorView = UIActivityIndicatorView()
     var selectedRoomCategory : String = ""
     
+    class func create(_ viewModel: ListViewModel) -> ListViewController? {
+        let storyBoard = UIStoryboard(name: "Main", bundle: Bundle.main)
+        if let vc = storyBoard.instantiateViewController(withIdentifier: "ListViewController") as? ListViewController {
+            vc.viewModel = viewModel
+            return vc
+        }
+        return nil
+    }
+    
+    
     //constants
     static let MEETING_ROOMS = "meetingRooms"
     static let PEOPLE = "people"
+    
     static let BOOKED_ROOMS = "BookedRooms"
     static let AVAILABLE_ROOMS = "AvailableRooms"
     static let AVAILABLE_ROOMS_SAVED_LOCALLY =  "LocallySavedAvailableRooms"
@@ -80,6 +91,8 @@ class ListViewController: UIViewController {
     private func loadList()
     {
         activityIndicator.startAnimating()
+        viewModel?.refreshData()
+        
         if categorySelected == ListViewController.MEETING_ROOMS
         {
             bookedRoomsButton.isHidden = false
@@ -135,7 +148,7 @@ class ListViewController: UIViewController {
                 let decoder = JSONDecoder()
 
                 // Decode Note
-                let locallySavedBookedRooms = try decoder.decode([MeettingRooms].self, from: data)
+                let locallySavedBookedRooms = try decoder.decode(MeetingRooms.self, from: data)
                 
                 bookedRoomList.append(contentsOf: locallySavedBookedRooms)
             } catch {
@@ -149,7 +162,7 @@ class ListViewController: UIViewController {
                 let decoder = JSONDecoder()
 
                 // Decode Note
-                let locallyAvailableRooms = try decoder.decode([MeettingRooms].self, from: data)
+                let locallyAvailableRooms = try decoder.decode(MeetingRooms.self, from: data)
                 for  object in locallyAvailableRooms{
                     
                     let searchedID = object.id
@@ -197,7 +210,7 @@ class ListViewController: UIViewController {
                 let decoder = JSONDecoder()
 
                 // Decode Note
-                let locallySavedAvailableRooms = try decoder.decode([MeettingRooms].self, from: data)
+                let locallySavedAvailableRooms = try decoder.decode(MeetingRooms.self, from: data)
                 avaiableRoomList.append(contentsOf: locallySavedAvailableRooms)
             } catch {
                 print("Unable to Decode Notes (\(error))")
@@ -212,7 +225,7 @@ class ListViewController: UIViewController {
                 let decoder = JSONDecoder()
 
                 // Decode Note
-                let locallySavedBookedRooms = try decoder.decode([MeettingRooms].self, from: data)
+                let locallySavedBookedRooms = try decoder.decode(MeetingRooms.self, from: data)
                 for  object in locallySavedBookedRooms{
                     
                     let searchedID = object.id
@@ -234,9 +247,9 @@ class ListViewController: UIViewController {
         activityIndicator.stopAnimating()
     }
 }
-func removeDuplicates(array: [MeettingRooms]) -> [MeettingRooms] {
-    var encountered = Set<MeettingRooms>()
-    var result: [MeettingRooms] = []
+func removeDuplicates(array: MeetingRooms) -> MeetingRooms {
+    var encountered = Set<MeetingRooms>()
+    var result: MeetingRooms = []
     for value in array {
         if encountered.contains(value){
             // Do not add a duplicate element.
@@ -253,6 +266,12 @@ func removeDuplicates(array: [MeettingRooms]) -> [MeettingRooms] {
 extension ListViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        viewModel.count
+    }
+        
+        
+        
+        
         if categorySelected == ListViewController.PEOPLE{
         return  listOfEmployee.count
         }
@@ -278,6 +297,9 @@ extension ListViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
         let cell = tableView.dequeueReusableCell(withIdentifier: "CustomTableCell") as! CustomTableCell
+        viewModel?.configureCell(cell: cell, indexPath: indexPath)
+        
+        
         if categorySelected == ListViewController.PEOPLE{
             cell.set(track: listOfEmployee[indexPath.row])
             
@@ -357,3 +379,12 @@ extension ListViewController: UITableViewDataSource, UITableViewDelegate {
     }
 }
 
+
+
+extension ListViewController: ListDisplaying {
+    
+    func refreshList() {
+        activityIndicator.stopAnimating()
+        listTableView.reloadData()
+    }
+}
